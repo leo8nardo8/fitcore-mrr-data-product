@@ -92,7 +92,7 @@ flowchart LR
 
 ## 3. Como reproduzir
 
-**GitHub Codespaces (recomendado):** abrir o repositório em um Codespace. O `.devcontainer` instala as dependências e roda `dbt deps`. Depois:
+**GitHub Codespaces (recomendado):** abrir o repositório em um Codespace. O `.devcontainer` instala as dependências e roda `dbt deps` logo após a criação; aguarde o terminal de criação terminar antes de rodar os comandos. Depois:
 
 ```bash
 ./scripts/run_demo.sh            # todos os cenários (≈ 1 min)
@@ -117,7 +117,7 @@ cd dbt_project && dbt deps && cd ..
 | `semantic` | faturas duplicadas e valores negativos | staging falha, intermediate e marts SKIPPED |
 | `anomaly` | faturamento de um mês dobrado | alerta (warn), pipeline segue |
 
-Os logs completos de cada cenário ficam em [`evidencias/`](evidencias/).
+Os logs completos de cada cenário ficam em [`evidencias/`](evidencias/). Os logs versionados são da execução de referência (dados até 30/09/2026). Como a data de corte é sempre o dia anterior à execução, uma nova rodada produz contagens, somas e hashes ligeiramente diferentes; o que se mantém é o padrão de cada cenário (OK, FAIL, SKIP, WARN) e o hash idêntico antes e depois de cada injeção.
 
 ---
 
@@ -125,7 +125,7 @@ Os logs completos de cada cenário ficam em [`evidencias/`](evidencias/).
 
 ### 4.1 Passo a passo da construção
 
-1. **Dados de origem.** `scripts/generate_data.py` simula 45 meses de operação (779 academias, 955 assinaturas, 9.645 faturas, 9.535 pagamentos) com crescimento, sazonalidade de academias (pico em janeiro e março, vale em dezembro), churn, upgrades, downgrades, reativações e inadimplência. A semente é fixa e a data de corte é **ontem**, para que os testes estatísticos, cuja janela é relativa à data atual, sempre avaliem meses recentes.
+1. **Dados de origem.** `scripts/generate_data.py` simula 45 meses de operação (779 academias, 955 assinaturas, 9.645 faturas, 9.543 pagamentos) com crescimento, sazonalidade de academias (pico em janeiro e março, vale em dezembro), churn, upgrades, downgrades, reativações e inadimplência. A semente é fixa e a data de corte é **ontem**, para que os testes estatísticos, cuja janela é relativa à data atual, sempre avaliem meses recentes.
 2. **Catálogo de planos como seed** (`seeds/plans.csv`): 6 linhas estáticas, tipadas via `column_types`.
 3. **Staging** (`models/staging/`): um modelo por fonte. Conversões usam `try_cast`, de modo que um valor fora do tipo vira nulo e é **barrado por um teste com diagnóstico**, em vez de derrubar o pipeline com erro de conversão genérico.
 4. **Intermediate** (`models/intermediate/`): MRR por assinatura, calendário mensal, foto de MRR por academia e mês com classificação do movimento e cálculo da ponte.
@@ -208,7 +208,7 @@ Um teste justificado por família de asserção, sem testes "por precaução":
 
 Medido nos dados íntegros, o teste de 3σ dispara em ~5% dos meses históricos, inclusive em **janeiro de 2025, pico sazonal real** de contratações. Bloquear o reporte de receita no mês em que ele mais importa seria um falso positivo caro.
 
-**Evidência ([`05_anomaly.log`](evidencias/05_anomaly.log)).** 437 faturas mensais de agosto tiveram o valor dobrado. Cada uma continua dentro da faixa válida, então nenhuma regra linha a linha é violada:
+**Evidência ([`05_anomaly.log`](evidencias/05_anomaly.log)).** 457 faturas mensais de setembro tiveram o valor dobrado. Cada uma continua dentro da faixa válida, então nenhuma regra linha a linha é violada:
 
 ```
 WARN 1 dbt_expectations_expect_column_values_to_be_within_n_moving_stdevs_fct_invoices_amount...
