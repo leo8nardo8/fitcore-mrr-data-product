@@ -262,17 +262,17 @@ Trecho de [`04_semantic.log`](evidencias/04_semantic.log):
 ```
 --- Visão do consumidor (antes) ---
 marts.fct_mrr_monthly    linhas=    45  soma(closing_mrr)=  4,143,468.10  hash=64336767892a
-marts.fct_invoices       linhas= 9,645  soma(amount)=  4,523,416.20  hash=d30f0a82d673
+marts.fct_invoices       linhas= 9,645  soma(amount)=  4,523,416.20  hash=8ff5f7a5f89e
 [semantic] 40 faturas duplicadas e 15 valores negativos injetados.
 FAIL 15 dbt_expectations_expect_column_values_to_be_between_stg_fitcore__invoices_amount...
 FAIL 40 unique_stg_fitcore__invoices_invoice_id
-FAIL 53 assert_payments_do_not_exceed_invoice
+FAIL 54 assert_payments_do_not_exceed_invoice
 SKIP relation intermediate.int_mrr_by_customer_month
 SKIP relation marts.fct_invoices
 SKIP relation marts.fct_mrr_monthly
 --- Visão do consumidor (depois) ---
 marts.fct_mrr_monthly    linhas=    45  soma(closing_mrr)=  4,143,468.10  hash=64336767892a
-marts.fct_invoices       linhas= 9,645  soma(amount)=  4,523,416.20  hash=d30f0a82d673
+marts.fct_invoices       linhas= 9,645  soma(amount)=  4,523,416.20  hash=8ff5f7a5f89e
 ```
 
 **Contenção do raio de impacto.** No cenário `schema`, o `fct_mrr_monthly` **continua sendo atualizado**, porque não depende de pagamentos. O circuit breaker abre só no ramo afetado; o resto do produto segue entregando valor. Um hard gate global ("qualquer erro para tudo") seria mais simples e pior.
