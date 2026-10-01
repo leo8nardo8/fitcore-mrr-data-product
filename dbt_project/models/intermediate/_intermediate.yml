@@ -1,0 +1,43 @@
+version: 2
+
+models:
+  - name: int_month_spine
+    description: Calendário mensal da série de MRR.
+    columns:
+      - name: month_start
+        data_tests: [unique, not_null]
+
+  - name: int_subscriptions_enriched
+    description: Assinaturas com o plano e o MRR normalizado (anual / 12, líquido de desconto).
+    columns:
+      - name: subscription_id
+        data_tests: [unique, not_null]
+      - name: mrr_amount
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                strictly: true
+
+  - name: int_mrr_by_customer_month
+    description: MRR por academia e mês (foto de fim de mês) e o tipo de movimento.
+    data_tests:
+      - dbt_expectations.expect_compound_columns_to_be_unique:
+          arguments:
+            column_list: [customer_id, month_start]
+    columns:
+      - name: movement_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [new, reactivation, expansion, contraction, churn, retained, inactive]
+
+  - name: int_mrr_bridge_monthly
+    description: >
+      Cálculo da ponte de MRR mensal. Fechamento independente dos movimentos;
+      reconciliado pelo teste singular assert_mrr_bridge_reconciles antes da
+      publicação no fct_mrr_monthly.
+    columns:
+      - name: month_start
+        data_tests: [unique, not_null]

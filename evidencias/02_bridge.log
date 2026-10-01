@@ -1,0 +1,149 @@
+
+=== 02 | REGRA CONTÁBIL — REGRESSÃO DE LÓGICA NA PONTE DE MRR ===
+Um desenvolvedor inverte o sinal da contração no cálculo da ponte.
+Schema e tipos continuam corretos (o contrato não pega), mas a ponte deixa de fechar.
+O teste singular falha na intermediate e o fct_mrr_monthly não é republicado.
+
+--- Visão do consumidor (antes) ---
+marts.fct_mrr_monthly    linhas=    45  soma(closing_mrr)=  4,143,468.10  hash=64336767892a
+marts.fct_invoices       linhas= 9,645  soma(amount)=  4,523,416.20  hash=d30f0a82d673
+17:        sum(case when movement_type = 'contraction'  then mrr_delta else 0 end) as contraction_mrr,
+02:22:17  Running with dbt=1.12.5
+02:22:18  Registered adapter: duckdb=1.11.0
+02:22:19  Found 13 models, 62 data tests, 1 seed, 4 sources, 822 macros
+02:22:19  
+02:22:19  Concurrency: 4 threads (target='dev')
+02:22:19  
+02:22:19  1 of 51 START sql view model staging.stg_fitcore__subscriptions ................ [RUN]
+02:22:19  2 of 51 START seed file raw.plans .............................................. [RUN]
+02:22:19  3 of 51 START test dbt_expectations_source_expect_table_columns_to_match_ordered_list_fitcore_raw_invoices_invoice_id__subscription_id__customer_id__issued_date__period_start__period_end__amount__currency__status  [RUN]
+02:22:19  1 of 51 OK created sql view model staging.stg_fitcore__subscriptions ........... [OK in 0.29s]
+02:22:19  2 of 51 OK loaded seed file raw.plans .......................................... [INSERT 6 in 0.29s]
+02:22:19  4 of 51 START sql view model staging.stg_fitcore__plans ........................ [RUN]
+02:22:19  5 of 51 START test dbt_expectations_expect_column_pair_values_A_to_be_greater_than_B_stg_fitcore__subscriptions_end_date__start_date__end_date_is_not_null  [RUN]
+02:22:19  6 of 51 START test dbt_expectations_expect_column_values_to_be_between_stg_fitcore__subscriptions_discount_pct__0_3__0  [RUN]
+02:22:19  3 of 51 PASS dbt_expectations_source_expect_table_columns_to_match_ordered_list_fitcore_raw_invoices_invoice_id__subscription_id__customer_id__issued_date__period_start__period_end__amount__currency__status  [PASS in 0.38s]
+02:22:19  7 of 51 START test dbt_expectations_expect_column_values_to_be_in_set_stg_fitcore__subscriptions_status__active__canceled__replaced  [RUN]
+02:22:19  6 of 51 PASS dbt_expectations_expect_column_values_to_be_between_stg_fitcore__subscriptions_discount_pct__0_3__0  [PASS in 0.11s]
+02:22:19  4 of 51 OK created sql view model staging.stg_fitcore__plans ................... [OK in 0.12s]
+02:22:19  8 of 51 START test not_null_stg_fitcore__subscriptions_customer_id ............. [RUN]
+02:22:19  9 of 51 START test not_null_stg_fitcore__subscriptions_discount_pct ............ [RUN]
+02:22:19  5 of 51 PASS dbt_expectations_expect_column_pair_values_A_to_be_greater_than_B_stg_fitcore__subscriptions_end_date__start_date__end_date_is_not_null  [PASS in 0.13s]
+02:22:20  10 of 51 START test not_null_stg_fitcore__subscriptions_plan_id ................ [RUN]
+02:22:20  7 of 51 PASS dbt_expectations_expect_column_values_to_be_in_set_stg_fitcore__subscriptions_status__active__canceled__replaced  [PASS in 0.11s]
+02:22:20  11 of 51 START test not_null_stg_fitcore__subscriptions_start_date ............. [RUN]
+02:22:20  9 of 51 PASS not_null_stg_fitcore__subscriptions_discount_pct .................. [PASS in 0.09s]
+02:22:20  12 of 51 START test not_null_stg_fitcore__subscriptions_subscription_id ........ [RUN]
+02:22:20  8 of 51 PASS not_null_stg_fitcore__subscriptions_customer_id ................... [PASS in 0.12s]
+02:22:20  13 of 51 START test relationships_stg_fitcore__subscriptions_customer_id__customer_id__ref_stg_fitcore__customers_  [RUN]
+02:22:20  10 of 51 PASS not_null_stg_fitcore__subscriptions_plan_id ...................... [PASS in 0.10s]
+02:22:20  14 of 51 START test unique_stg_fitcore__subscriptions_subscription_id .......... [RUN]
+02:22:20  11 of 51 PASS not_null_stg_fitcore__subscriptions_start_date ................... [PASS in 0.10s]
+02:22:20  15 of 51 START sql view model staging.stg_fitcore__invoices .................... [RUN]
+02:22:20  12 of 51 PASS not_null_stg_fitcore__subscriptions_subscription_id .............. [PASS in 0.10s]
+02:22:20  16 of 51 START test accepted_values_stg_fitcore__plans_billing_period__monthly__annual  [RUN]
+02:22:20  13 of 51 PASS relationships_stg_fitcore__subscriptions_customer_id__customer_id__ref_stg_fitcore__customers_  [PASS in 0.12s]
+02:22:20  14 of 51 PASS unique_stg_fitcore__subscriptions_subscription_id ................ [PASS in 0.12s]
+02:22:20  18 of 51 START test not_null_stg_fitcore__plans_list_price ..................... [RUN]
+02:22:20  17 of 51 START test dbt_expectations_expect_column_values_to_be_between_stg_fitcore__plans_list_price__0__True  [RUN]
+02:22:20  15 of 51 OK created sql view model staging.stg_fitcore__invoices ............... [OK in 0.10s]
+02:22:20  19 of 51 START test not_null_stg_fitcore__plans_plan_id ........................ [RUN]
+02:22:20  16 of 51 PASS accepted_values_stg_fitcore__plans_billing_period__monthly__annual  [PASS in 0.10s]
+02:22:20  20 of 51 START test relationships_stg_fitcore__subscriptions_plan_id__plan_id__ref_stg_fitcore__plans_  [RUN]
+02:22:20  17 of 51 PASS dbt_expectations_expect_column_values_to_be_between_stg_fitcore__plans_list_price__0__True  [PASS in 0.09s]
+02:22:20  18 of 51 PASS not_null_stg_fitcore__plans_list_price ........................... [PASS in 0.10s]
+02:22:20  21 of 51 START test unique_stg_fitcore__plans_plan_id .......................... [RUN]
+02:22:20  22 of 51 START test accepted_values_stg_fitcore__invoices_currency__BRL ........ [RUN]
+02:22:20  19 of 51 PASS not_null_stg_fitcore__plans_plan_id .............................. [PASS in 0.12s]
+02:22:20  20 of 51 PASS relationships_stg_fitcore__subscriptions_plan_id__plan_id__ref_stg_fitcore__plans_  [PASS in 0.11s]
+02:22:20  24 of 51 START test dbt_expectations_expect_column_values_to_be_between_stg_fitcore__invoices_amount__9709__0__False  [RUN]
+02:22:20  23 of 51 START test assert_payments_do_not_exceed_invoice ...................... [RUN]
+02:22:20  22 of 51 PASS accepted_values_stg_fitcore__invoices_currency__BRL .............. [PASS in 0.08s]
+02:22:20  25 of 51 START test dbt_expectations_expect_column_values_to_be_in_set_stg_fitcore__invoices_status__paid__open__overdue  [RUN]
+02:22:20  21 of 51 PASS unique_stg_fitcore__plans_plan_id ................................ [PASS in 0.11s]
+02:22:20  26 of 51 START test dbt_expectations_expect_table_row_count_to_be_between_stg_fitcore__invoices_50000__5000  [RUN]
+02:22:20  24 of 51 PASS dbt_expectations_expect_column_values_to_be_between_stg_fitcore__invoices_amount__9709__0__False  [PASS in 0.11s]
+02:22:20  27 of 51 START test not_null_stg_fitcore__invoices_amount ...................... [RUN]
+02:22:20  23 of 51 PASS assert_payments_do_not_exceed_invoice ............................ [PASS in 0.12s]
+02:22:20  28 of 51 START test not_null_stg_fitcore__invoices_invoice_id .................. [RUN]
+02:22:20  26 of 51 PASS dbt_expectations_expect_table_row_count_to_be_between_stg_fitcore__invoices_50000__5000  [PASS in 0.12s]
+02:22:20  29 of 51 START test not_null_stg_fitcore__invoices_issued_date ................. [RUN]
+02:22:20  25 of 51 PASS dbt_expectations_expect_column_values_to_be_in_set_stg_fitcore__invoices_status__paid__open__overdue  [PASS in 0.13s]
+02:22:20  30 of 51 START test not_null_stg_fitcore__invoices_subscription_id ............. [RUN]
+02:22:20  27 of 51 PASS not_null_stg_fitcore__invoices_amount ............................ [PASS in 0.07s]
+02:22:20  31 of 51 START test relationships_stg_fitcore__invoices_subscription_id__subscription_id__ref_stg_fitcore__subscriptions_  [RUN]
+02:22:20  28 of 51 PASS not_null_stg_fitcore__invoices_invoice_id ........................ [PASS in 0.09s]
+02:22:20  32 of 51 START test relationships_stg_fitcore__payments_invoice_id__invoice_id__ref_stg_fitcore__invoices_  [RUN]
+02:22:20  29 of 51 PASS not_null_stg_fitcore__invoices_issued_date ....................... [PASS in 0.10s]
+02:22:20  33 of 51 START test unique_stg_fitcore__invoices_invoice_id .................... [RUN]
+02:22:20  30 of 51 PASS not_null_stg_fitcore__invoices_subscription_id ................... [PASS in 0.10s]
+02:22:20  34 of 51 START sql table model intermediate.int_subscriptions_enriched ......... [RUN]
+02:22:20  31 of 51 PASS relationships_stg_fitcore__invoices_subscription_id__subscription_id__ref_stg_fitcore__subscriptions_  [PASS in 0.12s]
+02:22:20  32 of 51 PASS relationships_stg_fitcore__payments_invoice_id__invoice_id__ref_stg_fitcore__invoices_  [PASS in 0.09s]
+02:22:20  33 of 51 PASS unique_stg_fitcore__invoices_invoice_id .......................... [PASS in 0.08s]
+02:22:20  35 of 51 START sql table model intermediate.int_month_spine .................... [RUN]
+02:22:20  34 of 51 OK created sql table model intermediate.int_subscriptions_enriched .... [OK in 0.12s]
+02:22:20  36 of 51 START test dbt_expectations_expect_column_values_to_be_between_int_subscriptions_enriched_mrr_amount__0__True  [RUN]
+02:22:20  37 of 51 START test not_null_int_subscriptions_enriched_mrr_amount ............. [RUN]
+02:22:20  38 of 51 START test not_null_int_subscriptions_enriched_subscription_id ........ [RUN]
+02:22:20  35 of 51 OK created sql table model intermediate.int_month_spine ............... [OK in 0.05s]
+02:22:20  39 of 51 START test unique_int_subscriptions_enriched_subscription_id .......... [RUN]
+02:22:20  38 of 51 PASS not_null_int_subscriptions_enriched_subscription_id .............. [PASS in 0.07s]
+02:22:20  40 of 51 START test not_null_int_month_spine_month_start ....................... [RUN]
+02:22:20  39 of 51 PASS unique_int_subscriptions_enriched_subscription_id ................ [PASS in 0.07s]
+02:22:20  37 of 51 PASS not_null_int_subscriptions_enriched_mrr_amount ................... [PASS in 0.08s]
+02:22:20  36 of 51 PASS dbt_expectations_expect_column_values_to_be_between_int_subscriptions_enriched_mrr_amount__0__True  [PASS in 0.09s]
+02:22:20  41 of 51 START test unique_int_month_spine_month_start ......................... [RUN]
+02:22:21  40 of 51 PASS not_null_int_month_spine_month_start ............................. [PASS in 0.05s]
+02:22:21  41 of 51 PASS unique_int_month_spine_month_start ............................... [PASS in 0.04s]
+02:22:21  42 of 51 START sql table model intermediate.int_mrr_by_customer_month .......... [RUN]
+02:22:21  42 of 51 OK created sql table model intermediate.int_mrr_by_customer_month ..... [OK in 0.09s]
+02:22:21  43 of 51 START test accepted_values_int_mrr_by_customer_month_movement_type__new__reactivation__expansion__contraction__churn__retained__inactive  [RUN]
+02:22:21  44 of 51 START test dbt_expectations_expect_compound_columns_to_be_unique_int_mrr_by_customer_month_customer_id__month_start  [RUN]
+02:22:21  44 of 51 PASS dbt_expectations_expect_compound_columns_to_be_unique_int_mrr_by_customer_month_customer_id__month_start  [PASS in 0.08s]
+02:22:21  43 of 51 PASS accepted_values_int_mrr_by_customer_month_movement_type__new__reactivation__expansion__contraction__churn__retained__inactive  [PASS in 0.09s]
+02:22:21  45 of 51 START sql table model intermediate.int_mrr_bridge_monthly ............. [RUN]
+02:22:21  45 of 51 OK created sql table model intermediate.int_mrr_bridge_monthly ........ [OK in 0.03s]
+02:22:21  46 of 51 START test assert_mrr_bridge_reconciles ............................... [RUN]
+02:22:21  47 of 51 START test not_null_int_mrr_bridge_monthly_month_start ................ [RUN]
+02:22:21  48 of 51 START test unique_int_mrr_bridge_monthly_month_start .................. [RUN]
+02:22:21  47 of 51 PASS not_null_int_mrr_bridge_monthly_month_start ...................... [PASS in 0.07s]
+02:22:21  46 of 51 FAIL 21 assert_mrr_bridge_reconciles .................................. [FAIL 21 in 0.07s]
+02:22:21  48 of 51 PASS unique_int_mrr_bridge_monthly_month_start ........................ [PASS in 0.06s]
+02:22:21  49 of 51 SKIP relation marts.fct_mrr_monthly ................................... [SKIP]
+02:22:21  50 of 51 SKIP test dbt_expectations_expect_column_values_to_be_between_fct_mrr_monthly_churned_mrr__0  [SKIP]
+02:22:21  51 of 51 SKIP test unique_fct_mrr_monthly_month_start .......................... [SKIP]
+02:22:21  
+02:22:21  Finished running 1 seed, 5 table models, 42 data tests, 3 view models in 0 hours 0 minutes and 1.94 seconds (1.94s).
+02:22:21  
+02:22:21  Completed with 1 error, 0 partial successes, and 0 warnings:
+02:22:21  
+02:22:21  [ERROR]: in test assert_mrr_bridge_reconciles (tests/assert_mrr_bridge_reconciles.sql)
+02:22:21    Got 21 results, configured to fail if != 0
+02:22:21  
+02:22:21    compiled code at target/compiled/fitcore_mrr/tests/assert_mrr_bridge_reconciles.sql
+02:22:21  
+02:22:21    See test failures:
+  --------------------------------------------------------------
+  select * from "fitcore"."audit"."assert_mrr_bridge_reconciles"
+  --------------------------------------------------------------
+02:22:21  
+02:22:21  Done. PASS=47 WARN=0 ERROR=1 SKIP=3 NO-OP=0 REUSED=0 TOTAL=51
+02:22:23  Running with dbt=1.12.5
+02:22:23  Registered adapter: duckdb=1.11.0
+02:22:25  Found 13 models, 62 data tests, 1 seed, 1 sql operation, 4 sources, 822 macros
+02:22:25  
+02:22:25  Concurrency: 4 threads (target='dev')
+02:22:25  
+Previewing inline node:
+| month_start | bridge_gap |
+| ----------- | ---------- |
+|  2026-09-01 |     -1,850 |
+|  2026-08-01 |     -1,582 |
+|  2026-05-01 |     -1,850 |
+|  2026-04-01 |     -2,400 |
+|  2026-03-01 |     -3,292 |
+
+--- Visão do consumidor (depois (fct_mrr_monthly deve estar idêntico)) ---
+marts.fct_mrr_monthly    linhas=    45  soma(closing_mrr)=  4,143,468.10  hash=64336767892a
+marts.fct_invoices       linhas= 9,645  soma(amount)=  4,523,416.20  hash=d30f0a82d673

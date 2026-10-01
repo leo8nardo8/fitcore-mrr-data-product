@@ -1,0 +1,11 @@
+# Artefatos gerados — reproduzíveis com scripts/generate_data.py e dbt build
+data/raw/
+data/*.duckdb
+data/*.duckdb.wal
+dbt_project/target/
+dbt_project/dbt_packages/
+dbt_project/logs/
+dbt_project/package-lock.yml
+__pycache__/
+*.bak
+dbt_project/.user.yml

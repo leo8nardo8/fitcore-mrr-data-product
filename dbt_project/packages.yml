@@ -1,0 +1,6 @@
+# dbt-expectations: o pacote original (calogica) foi descontinuado; a versão
+# mantida é o fork da Metaplane. Revisão fixada para garantir reprodutibilidade.
+# Dependência transitiva: godatadriven/dbt_date (resolvida pelo `dbt deps`).
+packages:
+  - git: "https://github.com/metaplane/dbt-expectations.git"
+    revision: "0.10.10"

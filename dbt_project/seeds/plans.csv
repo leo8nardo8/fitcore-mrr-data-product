@@ -1,0 +1,7 @@
+plan_id,plan_name,tier,billing_period,list_price
+starter_monthly,Starter Mensal,starter,monthly,199.00
+starter_annual,Starter Anual,starter,annual,2149.00
+pro_monthly,Pro Mensal,pro,monthly,399.00
+pro_annual,Pro Anual,pro,annual,4309.00
+enterprise_monthly,Enterprise Mensal,enterprise,monthly,899.00
+enterprise_annual,Enterprise Anual,enterprise,annual,9709.00

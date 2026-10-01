@@ -1,0 +1,7 @@
+fitcore_mrr:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH', '../data/fitcore.duckdb') }}"
+      threads: 4

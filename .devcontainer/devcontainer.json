@@ -1,0 +1,9 @@
+{
+  "name": "FitCore MRR Data Product",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "postCreateCommand": "pip install -r requirements.txt && cd dbt_project && dbt deps",
+  "containerEnv": { "DBT_PROFILES_DIR": "${containerWorkspaceFolder}/dbt_project" },
+  "customizations": {
+    "vscode": { "extensions": ["innoverio.vscode-dbt-power-user", "mechatroner.rainbow-csv"] }
+  }
+}

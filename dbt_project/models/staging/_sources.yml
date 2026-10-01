@@ -1,0 +1,34 @@
+version: 2
+
+sources:
+  - name: fitcore_raw
+    description: >
+      Extrações brutas do sistema de cobrança da FitCore, entregues como parquet.
+      Os arquivos são lidos diretamente pelo DuckDB (sem carga prévia).
+    meta:
+      external_location: "../data/raw/{name}.parquet"
+    tables:
+      - name: customers
+        description: Cadastro de academias clientes (uma linha por academia).
+      - name: subscriptions
+        description: Assinaturas. Mudança de plano encerra a assinatura e abre outra.
+      - name: invoices
+        description: Faturas emitidas, uma por ciclo de cobrança.
+        data_tests:
+          # Contrato de interface com o sistema de origem: detecta coluna
+          # renomeada, removida ou adicionada antes de qualquer transformação.
+          - dbt_expectations.expect_table_columns_to_match_ordered_list:
+              arguments:
+                column_list: [invoice_id, subscription_id, customer_id, issued_date,
+                              period_start, period_end, amount, currency, status]
+      - name: payments
+        description: Pagamentos recebidos, vinculados a faturas.
+        data_tests:
+          - dbt_expectations.expect_table_columns_to_match_ordered_list:
+              arguments:
+                column_list: [payment_id, invoice_id, paid_at, amount_paid, payment_method]
+          # Tipo físico da coluna de valor: texto aqui significa mudança no sistema de origem
+          - dbt_expectations.expect_column_values_to_be_in_type_list:
+              arguments:
+                column_name: amount_paid
+                column_type_list: [DOUBLE, DECIMAL(14,2)]

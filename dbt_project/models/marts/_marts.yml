@@ -1,0 +1,161 @@
+version: 2
+
+# Marts = interfaces públicas do data product.
+# fct_mrr_monthly e fct_invoices têm Model Contract ENFORCED: nomes, ordem
+# lógica e tipos das colunas são validados no build, e constraints de
+# not_null / primary_key são aplicadas na criação da tabela.
+# Qualquer breaking change no SQL do modelo falha o build antes de substituir
+# a tabela consumida pelos dashboards.
+
+models:
+  - name: fct_mrr_monthly
+    description: >
+      Ponte de MRR mensal da FitCore (abertura, movimentos e fechamento).
+      Fonte oficial para o reporte de receita recorrente à diretoria.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: month_start
+        data_type: date
+        description: Primeiro dia do mês de referência.
+        constraints:
+          - type: not_null
+          - type: primary_key
+        data_tests: [unique]
+      - name: opening_mrr
+        data_type: decimal(14,2)
+        description: MRR no fim do mês anterior (soma por academia).
+        constraints: [{type: not_null}]
+      - name: new_mrr
+        data_type: decimal(14,2)
+        description: MRR de academias que assinaram pela primeira vez.
+        constraints: [{type: not_null}]
+      - name: reactivation_mrr
+        data_type: decimal(14,2)
+        description: MRR de academias que haviam cancelado e voltaram.
+        constraints: [{type: not_null}]
+      - name: expansion_mrr
+        data_type: decimal(14,2)
+        description: Aumento de MRR em academias existentes (upgrade).
+        constraints: [{type: not_null}]
+      - name: contraction_mrr
+        data_type: decimal(14,2)
+        description: Redução de MRR em academias existentes (downgrade). Valor positivo.
+        constraints: [{type: not_null}]
+      - name: churned_mrr
+        data_type: decimal(14,2)
+        description: MRR perdido por cancelamento. Valor positivo.
+        constraints: [{type: not_null}]
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+      - name: closing_mrr
+        data_type: decimal(14,2)
+        description: MRR na foto de fim de mês, calculado direto das assinaturas ativas.
+        constraints: [{type: not_null}]
+      - name: net_new_mrr
+        data_type: decimal(14,2)
+        description: closing_mrr - opening_mrr.
+        constraints: [{type: not_null}]
+      - name: active_customers
+        data_type: integer
+        description: Academias com assinatura ativa no fim do mês.
+        constraints: [{type: not_null}]
+
+  - name: fct_invoices
+    description: Faturas com plano, desconto e situação de pagamento.
+    config:
+      contract:
+        enforced: true
+    data_tests:
+      # [ESTATÍSTICO / ANOMALIA] variação mensal do faturamento fora de 3
+      # desvios-padrão da tendência dos 6 meses anteriores (meses fechados).
+      # group_by billing_period: planos anuais faturam valores altos e
+      # irregulares; misturados aos mensais, o ruído esconde anomalias reais.
+      # warn: um pico pode ser legítimo (ex.: janeiro) e pede análise humana,
+      # não bloqueio do reporte.
+      - dbt_expectations.expect_column_values_to_be_within_n_moving_stdevs:
+          arguments:
+            column_name: amount
+            date_column_name: issued_date
+            group_by: [billing_period]
+            period: month
+            lookback_periods: 1
+            trend_periods: 6
+            test_periods: 6
+            sigma_threshold: 3
+            take_logs: true
+          config:
+            severity: warn
+    columns:
+      - name: invoice_id
+        data_type: varchar
+        constraints:
+          - type: not_null
+          - type: primary_key
+        data_tests: [unique]
+      - name: customer_id
+        data_type: varchar
+        constraints: [{type: not_null}]
+      - name: subscription_id
+        data_type: varchar
+        constraints: [{type: not_null}]
+      - name: plan_id
+        data_type: varchar
+        constraints: [{type: not_null}]
+      - name: tier
+        data_type: varchar
+      - name: billing_period
+        data_type: varchar
+      - name: issued_date
+        data_type: date
+        constraints: [{type: not_null}]
+      - name: period_start
+        data_type: date
+      - name: period_end
+        data_type: date
+      - name: list_price
+        data_type: decimal(14,2)
+      - name: discount_pct
+        data_type: decimal(5,4)
+      - name: amount
+        data_type: decimal(14,2)
+        constraints: [{type: not_null}]
+      - name: amount_paid
+        data_type: decimal(14,2)
+        constraints: [{type: not_null}]
+      - name: net_to_list_ratio
+        data_type: decimal(6,4)
+        description: Valor faturado / preço de lista. 1,0 = sem desconto.
+        data_tests:
+          # [ESTATÍSTICO] desconto médio da carteira coerente com a política
+          # comercial (desconto máximo de 30%, média esperada perto de 3%).
+          - dbt_expectations.expect_column_mean_to_be_between:
+              arguments:
+                min_value: 0.90
+                max_value: 1.00
+              config:
+                severity: warn
+      - name: invoice_status
+        data_type: varchar
+      - name: paid_at
+        data_type: date
+      - name: days_to_pay
+        data_type: integer
+
+  - name: fct_mrr_movements
+    description: Movimentos de MRR por academia e mês (auditoria da ponte).
+    columns:
+      - name: movement_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [new, reactivation, expansion, contraction, churn]
+
+  - name: dim_customers
+    description: Academias com plano e MRR atuais.
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]

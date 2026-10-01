@@ -1,0 +1,152 @@
+version: 2
+
+# Camada de staging: limpeza, tipagem e renomeação 1:1 com a fonte.
+# É AQUI que mora o circuit breaker: testes com severity "error" (padrão)
+# falham antes da intermediate e dos marts serem construídos, e o `dbt build`
+# marca todo o downstream como SKIPPED. O consumidor continua vendo a última
+# versão válida dos marts.
+
+models:
+  - name: stg_fitcore__customers
+    description: Academias clientes da FitCore.
+    columns:
+      - name: customer_id
+        description: Identificador da academia (GYM-NNNNN).
+        data_tests: [unique, not_null]
+      - name: cnpj
+        description: CNPJ formatado da academia.
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_match_regex:
+              arguments:
+                regex: '^\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}$'
+      - name: created_at
+        data_tests: [not_null]
+
+  - name: stg_fitcore__plans
+    description: Catálogo de planos (seed estático).
+    columns:
+      - name: plan_id
+        data_tests: [unique, not_null]
+      - name: billing_period
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["monthly", "annual"]
+      - name: list_price
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                strictly: true
+
+  - name: stg_fitcore__subscriptions
+    description: Assinaturas. Uma troca de plano encerra a assinatura atual e abre outra.
+    data_tests:
+      # Uma assinatura encerrada precisa terminar depois de começar
+      - dbt_expectations.expect_column_pair_values_A_to_be_greater_than_B:
+          arguments:
+            column_A: end_date
+            column_B: start_date
+            row_condition: "end_date is not null"
+    columns:
+      - name: subscription_id
+        data_tests: [unique, not_null]
+      - name: customer_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_fitcore__customers')
+                field: customer_id
+      - name: plan_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_fitcore__plans')
+                field: plan_id
+      - name: status
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_in_set:
+              arguments:
+                value_set: ["active", "canceled", "replaced"]
+      - name: start_date
+        data_tests: [not_null]
+      - name: discount_pct
+        description: Desconto negociado (0 a 30%), aplicado a todas as faturas da assinatura.
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 0.30
+
+  - name: stg_fitcore__invoices
+    description: Faturas emitidas, uma por ciclo de cobrança.
+    data_tests:
+      # Volumetria do lote: nem vazio, nem inflado por reprocessamento duplicado
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          arguments:
+            min_value: 5000
+            max_value: 50000
+    columns:
+      - name: invoice_id
+        data_tests: [unique, not_null]
+      - name: subscription_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_fitcore__subscriptions')
+                field: subscription_id
+      - name: issued_date
+        data_tests: [not_null]
+      - name: amount
+        description: Valor faturado (BRL), já líquido do desconto da assinatura.
+        data_tests:
+          - not_null
+          # Nunca negativo e nunca acima do plano mais caro do catálogo
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 9709
+                strictly: false
+      - name: currency
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["BRL"]
+      - name: status
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_in_set:
+              arguments:
+                value_set: ["paid", "open", "overdue"]
+
+  - name: stg_fitcore__payments
+    description: Pagamentos recebidos.
+    columns:
+      - name: payment_id
+        data_tests: [unique, not_null]
+      - name: invoice_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_fitcore__invoices')
+                field: invoice_id
+      - name: paid_at
+        data_tests: [not_null]
+      - name: amount_paid
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                strictly: true
+      - name: payment_method
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_in_set:
+              arguments:
+                value_set: ["pix", "boleto", "cartao"]

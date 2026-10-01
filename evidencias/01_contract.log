@@ -1,0 +1,46 @@
+
+=== 01 | MODEL CONTRACT ===
+Um desenvolvedor muda o tipo de active_customers para texto no fct_mrr_monthly.
+O contrato (enforced: true) recusa o build ANTES de substituir a tabela.
+
+13:    cast(active_customers as varchar)        as active_customers
+02:22:13  Running with dbt=1.12.5
+02:22:13  Registered adapter: duckdb=1.11.0
+02:22:15  Found 13 models, 62 data tests, 1 seed, 4 sources, 822 macros
+02:22:15  
+02:22:15  Concurrency: 4 threads (target='dev')
+02:22:15  
+02:22:15  1 of 3 START sql table model marts.fct_mrr_monthly ............................. [RUN]
+02:22:15  1 of 3 ERROR creating sql table model marts.fct_mrr_monthly .................... [ERROR in 0.10s]
+02:22:15  2 of 3 SKIP test dbt_expectations_expect_column_values_to_be_between_fct_mrr_monthly_churned_mrr__0  [SKIP]
+02:22:15  3 of 3 SKIP test unique_fct_mrr_monthly_month_start ............................ [SKIP]
+02:22:15  
+02:22:15  Finished running 1 table model, 2 data tests in 0 hours 0 minutes and 0.26 seconds (0.26s).
+02:22:15  
+02:22:15  Completed with 1 error, 0 partial successes, and 0 warnings:
+02:22:15  
+02:22:15  [ERROR]: in model fct_mrr_monthly (models/marts/fct_mrr_monthly.sql)
+02:22:15    Compilation Error in model fct_mrr_monthly (models/marts/fct_mrr_monthly.sql)
+  This model has an enforced contract that failed.
+  Please ensure the name, data_type, and number of columns in your contract match the columns in your model's definition.
+  
+  | column_name      | definition_type | contract_type | mismatch_reason    |
+  | ---------------- | --------------- | ------------- | ------------------ |
+  | active_customers | VARCHAR         | INTEGER       | data type mismatch |
+  
+  
+  > in macro assert_columns_equivalent (macros/relations/column/columns_spec_ddl.sql)
+  > called by macro default__get_assert_columns_equivalent (macros/relations/column/columns_spec_ddl.sql)
+  > called by macro get_assert_columns_equivalent (macros/relations/column/columns_spec_ddl.sql)
+  > called by macro duckdb__create_table_as (macros/adapters.sql)
+  > called by macro create_table_as (macros/adapters.sql)
+  > called by macro statement (macros/etc/statement.sql)
+  > called by macro materialization_table_duckdb (macros/materializations/table.sql)
+  > called by model fct_mrr_monthly (models/marts/fct_mrr_monthly.sql)
+02:22:15  
+02:22:15    compiled code at target/compiled/fitcore_mrr/models/marts/fct_mrr_monthly.sql
+02:22:15  
+02:22:15  Done. PASS=0 WARN=0 ERROR=1 SKIP=2 NO-OP=0 REUSED=0 TOTAL=3
+--- Visão do consumidor (após quebra de contrato (deve ser idêntico à linha de base)) ---
+marts.fct_mrr_monthly    linhas=    45  soma(closing_mrr)=  4,143,468.10  hash=64336767892a
+marts.fct_invoices       linhas= 9,645  soma(amount)=  4,523,416.20  hash=d30f0a82d673
