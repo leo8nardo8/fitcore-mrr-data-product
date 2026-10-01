@@ -1,7 +1,7 @@
 # FitCore MRR — Data Product com contratos e quality gates no dbt
 
 **MBA FIAP · Data Product Management & Value Delivery · Trilha 2: Engenharia e Qualidade**
-Grupo: _[nomes e RMs]_ · Entrega: 04/10/2026
+Grupo: Leonardo Augusto Thomas (RM369225) · Entrega: 04/10/2026
 
 > **Em uma frase:** um pipeline dbt (staging → intermediate → marts) que publica a ponte de MRR de uma empresa SaaS e **se recusa a publicar** quando o dado que chega está quebrado, seja no schema, no conteúdo ou na lógica contábil, mantendo o consumidor na última versão válida.
 
